@@ -1,6 +1,8 @@
 Mini Audio Rust Bindings
 ===
 
+_Note:_ The upstream version is is archived. I currently don't use this anymore, but will do an update now and then. Most of it is untested.
+
 [![Build Status](https://github.com/ExPixel/miniaudio-rs/workflows/CI/badge.svg)](https://github.com/ExPixel/miniaudio-rs/actions?query=workflow%3ACI)
 [![crates.io](https://img.shields.io/crates/v/miniaudio.svg?color=orange)](https://crates.io/crates/miniaudio)
 [![docs.rs](https://img.shields.io/badge/docs-stable-blue.svg)](https://docs.rs/miniaudio)
