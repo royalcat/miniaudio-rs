@@ -96,7 +96,7 @@ fn generate_bindings() {
     };
 
     let bindings = bindgen::Builder::default()
-        // Make sure to only whitelist miniaudio's API.
+        // Make sure to only allowlist miniaudio's API.
         .allowlist_type("ma_.*")
         .allowlist_function("ma_.*")
         .allowlist_var("(ma|MA)_.*")
