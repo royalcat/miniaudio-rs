@@ -209,10 +209,10 @@ fn apply_definitions<F: FnMut(&str, &str)>(mut define: F) {
     }
 
     let mut log_level: Option<&'static str> = None;
-    const LOG_LEVEL_VERBOSE: &'static str = "4";
-    const LOG_LEVEL_INFO: &'static str = "3";
-    const LOG_LEVEL_WARNING: &'static str = "2";
-    const LOG_LEVEL_ERROR: &'static str = "1";
+    const LOG_LEVEL_VERBOSE: &str = "4";
+    const LOG_LEVEL_INFO: &str = "3";
+    const LOG_LEVEL_WARNING: &str = "2";
+    const LOG_LEVEL_ERROR: &str = "1";
 
     if cfg!(feature = "ma-log-level-error") {
         log_level = Some(LOG_LEVEL_ERROR);
