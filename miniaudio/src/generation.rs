@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use crate::base::{from_bool32, to_bool32, Format};
 use crate::frames::FramesMut;
 use miniaudio_sys as sys;
@@ -95,7 +97,7 @@ impl WaveformConfig {
 }
 
 #[repr(transparent)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Waveform(sys::ma_waveform);
 
 impl Waveform {
@@ -120,13 +122,18 @@ impl Waveform {
             "output format not the same as waveform format"
         );
 
+        let mut frames_read: miniaudio_sys::ma_uint64 = 0;
+
         unsafe {
             sys::ma_waveform_read_pcm_frames(
                 &mut self.0 as *mut _,
                 output.as_mut_ptr() as *mut _,
                 output.frame_count() as u64,
-            )
+                &mut frames_read,
+            );
         }
+
+        return frames_read;
     }
 
     #[inline]
@@ -293,6 +300,7 @@ impl Noise {
         unsafe {
             sys::ma_noise_init(
                 config as *const NoiseConfig as *const _,
+                null(), // TODO
                 noise.as_mut_ptr() as *mut _,
             );
             noise.assume_init()
@@ -314,12 +322,17 @@ impl Noise {
             "output format not the same as waveform format"
         );
 
+        let mut frames_read: miniaudio_sys::ma_uint64 = 0;
+
         unsafe {
             sys::ma_noise_read_pcm_frames(
                 &mut self.0 as *mut _,
                 output.as_mut_ptr() as *mut _,
                 output.frame_count() as u64,
-            )
+                &mut frames_read,
+            );
         }
+
+        return frames_read;
     }
 }

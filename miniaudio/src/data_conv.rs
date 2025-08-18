@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use crate::base::{Error, Format};
 use crate::frames::{Frames, FramesMut};
 use crate::resampling::ResampleAlgorithm;
@@ -80,18 +82,9 @@ impl DataConverterConfig {
 
     pub fn set_resampling(&mut self, algo: ResampleAlgorithm) {
         match algo {
-            ResampleAlgorithm::Linear {
-                lpf_order,
-                lpf_nyquist_factor,
-            } => {
+            ResampleAlgorithm::Linear { lpf_order } => {
                 self.0.resampling.algorithm = sys::ma_resample_algorithm_linear;
                 self.0.resampling.linear.lpfOrder = lpf_order;
-                self.0.resampling.linear.lpfNyquistFactor = lpf_nyquist_factor;
-            }
-
-            ResampleAlgorithm::Speex { quality } => {
-                self.0.resampling.algorithm = sys::ma_resample_algorithm_speex;
-                self.0.resampling.speex.quality = quality as _;
             }
         }
     }
@@ -100,11 +93,6 @@ impl DataConverterConfig {
         match self.0.resampling.algorithm {
             sys::ma_resample_algorithm_linear => ResampleAlgorithm::Linear {
                 lpf_order: self.0.resampling.linear.lpfOrder,
-                lpf_nyquist_factor: self.0.resampling.linear.lpfNyquistFactor,
-            },
-
-            sys::ma_resample_algorithm_speex => ResampleAlgorithm::Speex {
-                quality: self.0.resampling.speex.quality as _,
             },
 
             _ => unreachable!(),
@@ -127,6 +115,7 @@ impl DataConverter {
         unsafe {
             Error::from_c_result(sys::ma_data_converter_init(
                 &config.0 as *const _,
+                null(),
                 converter.as_mut_ptr().cast(),
             ))?;
             Ok(converter.assume_init())
@@ -167,22 +156,32 @@ impl DataConverter {
         })
     }
 
-    pub fn required_input_frame_count(&self, output_frame_count: u64) -> u64 {
-        unsafe {
+    pub fn required_input_frame_count(&self, output_frame_count: u64) -> Result<u64, Error> {
+        let mut input_frame_count = 0;
+
+        Error::from_c_result(unsafe {
             sys::ma_data_converter_get_required_input_frame_count(
                 &self as *const _ as *mut _,
                 output_frame_count,
+                &mut input_frame_count,
             )
-        }
+        })?;
+
+        return Ok(input_frame_count);
     }
 
-    pub fn expected_output_frame_count(&self, input_frame_count: u64) -> u64 {
-        unsafe {
+    pub fn expected_output_frame_count(&self, input_frame_count: u64) -> Result<u64, Error> {
+        let mut output_frame_count = 0;
+
+        Error::from_c_result(unsafe {
             sys::ma_data_converter_get_expected_output_frame_count(
                 &self as *const _ as *mut _,
                 input_frame_count,
+                &mut output_frame_count,
             )
-        }
+        })?;
+
+        return Ok(output_frame_count);
     }
 
     pub fn input_latency(&self) -> u64 {
@@ -197,7 +196,7 @@ impl DataConverter {
 impl Drop for DataConverter {
     fn drop(&mut self) {
         unsafe {
-            sys::ma_data_converter_uninit(&mut self.0);
+            sys::ma_data_converter_uninit(&mut self.0, null());
         }
     }
 }

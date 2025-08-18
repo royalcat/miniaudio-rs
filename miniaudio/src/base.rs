@@ -38,7 +38,7 @@ pub enum Error {
     NotDirectory = sys::MA_NOT_DIRECTORY,
     IsDirectory = sys::MA_IS_DIRECTORY,
     DirectoryNotEmpty = sys::MA_DIRECTORY_NOT_EMPTY,
-    EndOfFile = sys::MA_END_OF_FILE,
+    AtEnd = sys::MA_AT_END,
     NoSpace = sys::MA_NO_SPACE,
     Busy = sys::MA_BUSY,
     IoError = sys::MA_IO_ERROR,
@@ -74,7 +74,6 @@ pub enum Error {
     InProgress = sys::MA_IN_PROGRESS,
     Cancelled = sys::MA_CANCELLED,
     MemoryAlreadyMapped = sys::MA_MEMORY_ALREADY_MAPPED,
-    AtEnd = sys::MA_AT_END,
 
     /* General miniaudio-specific errors. */
     FormatNotSupported = sys::MA_FORMAT_NOT_SUPPORTED,
@@ -131,7 +130,7 @@ impl Error {
             sys::MA_NOT_DIRECTORY => Error::NotDirectory,
             sys::MA_IS_DIRECTORY => Error::IsDirectory,
             sys::MA_DIRECTORY_NOT_EMPTY => Error::DirectoryNotEmpty,
-            sys::MA_END_OF_FILE => Error::EndOfFile,
+            sys::MA_AT_END => Error::AtEnd,
             sys::MA_NO_SPACE => Error::NoSpace,
             sys::MA_BUSY => Error::Busy,
             sys::MA_IO_ERROR => Error::IoError,
@@ -167,7 +166,6 @@ impl Error {
             sys::MA_IN_PROGRESS => Error::InProgress,
             sys::MA_CANCELLED => Error::Cancelled,
             sys::MA_MEMORY_ALREADY_MAPPED => Error::MemoryAlreadyMapped,
-            sys::MA_AT_END => Error::AtEnd,
 
             /* General miniaudio-specific errors. */
             sys::MA_FORMAT_NOT_SUPPORTED => Error::FormatNotSupported,
@@ -212,7 +210,7 @@ impl Error {
             Error::NotDirectory => "not directory",
             Error::IsDirectory => "is directory",
             Error::DirectoryNotEmpty => "directory not empty",
-            Error::EndOfFile => "end of file",
+            Error::AtEnd => "at end",
             Error::NoSpace => "no space",
             Error::Busy => "busy",
             Error::IoError => "io error",
@@ -248,7 +246,6 @@ impl Error {
             Error::InProgress => "in progress",
             Error::Cancelled => "cancelled",
             Error::MemoryAlreadyMapped => "memory already mapped",
-            Error::AtEnd => "at end",
 
             /* General miniaudio-specific errors. */
             Error::FormatNotSupported => "format not supported",
@@ -352,7 +349,7 @@ impl Channel {
     /// The default right channel.
     pub const RIGHT: Self = Self::FrontRight;
     /// The number of channels.
-    pub const COUNT: usize = sys::MA_CHANNEL_POSITION_COUNT as usize;
+    pub const COUNT: usize = Channel::Aux31 as usize + 1;
 }
 
 impl Default for Channel {
@@ -504,23 +501,23 @@ impl Default for PerformanceProfile {
 }
 
 // Standard Sample Rates:
-pub const SAMPLE_RATE_8000: u32 = sys::MA_SAMPLE_RATE_8000;
-pub const SAMPLE_RATE_11025: u32 = sys::MA_SAMPLE_RATE_11025;
-pub const SAMPLE_RATE_16000: u32 = sys::MA_SAMPLE_RATE_16000;
-pub const SAMPLE_RATE_22050: u32 = sys::MA_SAMPLE_RATE_22050;
-pub const SAMPLE_RATE_24000: u32 = sys::MA_SAMPLE_RATE_24000;
-pub const SAMPLE_RATE_32000: u32 = sys::MA_SAMPLE_RATE_32000;
-pub const SAMPLE_RATE_44100: u32 = sys::MA_SAMPLE_RATE_44100;
-pub const SAMPLE_RATE_48000: u32 = sys::MA_SAMPLE_RATE_48000;
-pub const SAMPLE_RATE_88200: u32 = sys::MA_SAMPLE_RATE_88200;
-pub const SAMPLE_RATE_96000: u32 = sys::MA_SAMPLE_RATE_96000;
-pub const SAMPLE_RATE_176400: u32 = sys::MA_SAMPLE_RATE_176400;
-pub const SAMPLE_RATE_192000: u32 = sys::MA_SAMPLE_RATE_192000;
-pub const SAMPLE_RATE_352800: u32 = sys::MA_SAMPLE_RATE_352800;
-pub const SAMPLE_RATE_384000: u32 = sys::MA_SAMPLE_RATE_384000;
+pub const STANDARD_SAMPLE_RATE_8000: u32 = sys::ma_standard_sample_rate_8000;
+pub const STANDARD_SAMPLE_RATE_11025: u32 = sys::ma_standard_sample_rate_11025;
+pub const STANDARD_SAMPLE_RATE_16000: u32 = sys::ma_standard_sample_rate_16000;
+pub const STANDARD_SAMPLE_RATE_22050: u32 = sys::ma_standard_sample_rate_22050;
+pub const STANDARD_SAMPLE_RATE_24000: u32 = sys::ma_standard_sample_rate_24000;
+pub const STANDARD_SAMPLE_RATE_32000: u32 = sys::ma_standard_sample_rate_32000;
+pub const STANDARD_SAMPLE_RATE_44100: u32 = sys::ma_standard_sample_rate_44100;
+pub const STANDARD_SAMPLE_RATE_48000: u32 = sys::ma_standard_sample_rate_48000;
+pub const STANDARD_SAMPLE_RATE_88200: u32 = sys::ma_standard_sample_rate_88200;
+pub const STANDARD_SAMPLE_RATE_96000: u32 = sys::ma_standard_sample_rate_96000;
+pub const STANDARD_SAMPLE_RATE_176400: u32 = sys::ma_standard_sample_rate_176400;
+pub const STANDARD_SAMPLE_RATE_192000: u32 = sys::ma_standard_sample_rate_192000;
+pub const STANDARD_SAMPLE_RATE_352800: u32 = sys::ma_standard_sample_rate_352800;
+pub const STANDARD_SAMPLE_RATE_384000: u32 = sys::ma_standard_sample_rate_384000;
 
-pub const MIN_SAMPLE_RATE: u32 = SAMPLE_RATE_8000;
-pub const MAX_SAMPLE_RATE: u32 = SAMPLE_RATE_384000;
+pub const MIN_SAMPLE_RATE: u32 = STANDARD_SAMPLE_RATE_8000;
+pub const MAX_SAMPLE_RATE: u32 = STANDARD_SAMPLE_RATE_384000;
 
 /// Minimum number of channels in a channel map.
 pub const MIN_CHANNELS: usize = sys::MA_MIN_CHANNELS as usize;

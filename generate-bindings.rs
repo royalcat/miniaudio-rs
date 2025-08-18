@@ -83,12 +83,14 @@ fn base_command() -> Command {
         "--size_t-is-usize",
         "--impl-debug",
         "--no-prepend-enum-name",
+        "--merge-extern-blocks",
+        "--wrap-unsafe-ops",
     ]);
     cmd.args(&["--ctypes-prefix", "libc"]);
     cmd.args(&["--rust-target", "1.36"]);
-    cmd.args(&["--whitelist-type", "ma_.*"]);
-    cmd.args(&["--whitelist-function", "ma_.*"]);
-    cmd.args(&["--whitelist-var", "(ma|MA)_.*"]);
+    cmd.args(&["--allowlist-type", "ma_.*"]);
+    cmd.args(&["--allowlist-function", "ma_.*"]);
+    cmd.args(&["--allowlist-var", "(ma|MA)_.*"]);
     cmd
 }
 

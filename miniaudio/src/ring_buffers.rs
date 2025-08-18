@@ -3,7 +3,7 @@
 //! the `PCMRingBuffer` operates on PCM frames. They are otherwise identical as `PCMRingBuffer` is
 //! just a wrapper around `RingBuffer`.
 
-use crate::base::{from_bool8, Error};
+use crate::base::{Error, from_bool8};
 use miniaudio_sys as sys;
 use std::os::raw::c_void;
 use std::ptr::NonNull;
@@ -55,7 +55,7 @@ impl<T: Clone> RingBuffer<T> {
         let size_in_bytes = std::mem::size_of::<T>() * subbuffer_len;
         let stride_in_bytes = std::mem::size_of::<T>() * subbuffer_len;
 
-        unsafe { Self::new_raw(size_in_bytes, subbuffer_count, stride_in_bytes, None) }
+        Self::new_raw(size_in_bytes, subbuffer_count, stride_in_bytes, None)
     }
 
     pub(crate) fn new_preallocated(
@@ -96,32 +96,33 @@ impl<T: Clone> RingBuffer<T> {
         }
     }
 
-    unsafe fn new_raw(
+    fn new_raw(
         subbuffer_size_in_bytes: usize,
         subbuffer_count: usize,
         subbuffer_stride_in_bytes: usize,
         preallocated_buffer: Option<NonNull<()>>,
     ) -> Result<RingBuffer<T>, Error> {
         let mut ring_buffer = std::mem::MaybeUninit::<sys::ma_rb>::uninit();
+        unsafe {
+            let result = sys::ma_rb_init_ex(
+                subbuffer_size_in_bytes,
+                subbuffer_count,
+                subbuffer_stride_in_bytes,
+                preallocated_buffer
+                    .map(|p| p.cast().as_ptr())
+                    .unwrap_or(std::ptr::null_mut()),
+                std::ptr::null(),
+                ring_buffer.as_mut_ptr(),
+            );
 
-        let result = sys::ma_rb_init_ex(
-            subbuffer_size_in_bytes,
-            subbuffer_count,
-            subbuffer_stride_in_bytes,
-            preallocated_buffer
-                .map(|p| p.cast().as_ptr())
-                .unwrap_or(std::ptr::null_mut()),
-            std::ptr::null(),
-            ring_buffer.as_mut_ptr(),
-        );
-
-        map_result!(
-            result,
-            RingBuffer {
-                inner: ring_buffer.assume_init(),
-                _buffer_type: std::marker::PhantomData,
-            }
-        )
+            map_result!(
+                result,
+                RingBuffer {
+                    inner: ring_buffer.assume_init(),
+                    _buffer_type: std::marker::PhantomData,
+                }
+            )
+        }
     }
 
     /// Used to retrieve a section of the ring buffer for reading. You specify the number of items
@@ -153,7 +154,7 @@ impl<T: Clone> RingBuffer<T> {
         f(items);
 
         let commit_result =
-            unsafe { sys::ma_rb_commit_read(&self.inner as *const _ as *mut _, bytes, buf_ptr) };
+            unsafe { sys::ma_rb_commit_read(&self.inner as *const _ as *mut _, bytes) };
 
         // This shouldn't fail because our arguments are valid, but we debug assert just to be sure.
         debug_assert!(commit_result == 0);
@@ -190,7 +191,7 @@ impl<T: Clone> RingBuffer<T> {
         f(items);
 
         let commit_result =
-            unsafe { sys::ma_rb_commit_write(&self.inner as *const _ as *mut _, bytes, buf_ptr) };
+            unsafe { sys::ma_rb_commit_write(&self.inner as *const _ as *mut _, bytes) };
 
         // This shouldn't fail because our arguments are valid, but we debug assert just to be sure.
         debug_assert!(commit_result == 0);

@@ -1,6 +1,8 @@
+use std::ptr::null;
+
 use super::biquad_filtering::Biquad;
 use super::Filter;
-use crate::base::{Error, Format, MAX_FILTER_ORDER};
+use crate::base::{Error, Format};
 use crate::frames::{Frames, FramesMut};
 use miniaudio_sys as sys;
 
@@ -92,6 +94,7 @@ impl BPF2 {
         unsafe {
             Error::from_c_result(sys::ma_bpf2_init(
                 config as *const BPF2Config as *const _,
+                null(),
                 bpf2.as_mut_ptr() as *mut _,
             ))?;
             Ok(bpf2.assume_init())
@@ -218,6 +221,7 @@ impl BPF {
         unsafe {
             Error::from_c_result(sys::ma_bpf_init(
                 config as *const BPFConfig as *const _,
+                null(),
                 bpf.as_mut_ptr() as *mut _,
             ))?;
             Ok(bpf.assume_init())
@@ -246,10 +250,9 @@ impl BPF {
     }
 
     #[inline]
-    pub fn bpf2(&self) -> &[BPF2; MAX_FILTER_ORDER / 2] {
+    pub fn bpf2(&self) -> &[BPF2] {
         unsafe {
-            &*(&self.0.bpf2 as *const [sys::ma_bpf2; MAX_FILTER_ORDER / 2]
-                as *const [BPF2; MAX_FILTER_ORDER / 2])
+            std::slice::from_raw_parts(self.0.pBPF2 as *const BPF2, self.0.bpf2Count as usize)
         }
     }
 

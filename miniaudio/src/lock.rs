@@ -1,5 +1,6 @@
 use std::cell::UnsafeCell;
-use std::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
+use std::hint::spin_loop;
+use std::sync::atomic::{AtomicUsize, Ordering, spin_loop_hint};
 
 pub struct SpinRwLock<T> {
     /// This either contains the number of readers using all of the bits above the first (0th bit),
@@ -22,7 +23,7 @@ impl<T> SpinRwLock<T> {
             if let Some(guard) = self.try_write() {
                 return guard;
             } else {
-                spin_loop_hint();
+                spin_loop();
             }
         }
     }
@@ -32,7 +33,7 @@ impl<T> SpinRwLock<T> {
             if let Some(guard) = self.try_read() {
                 return guard;
             } else {
-                spin_loop_hint();
+                spin_loop();
             }
         }
     }

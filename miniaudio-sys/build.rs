@@ -103,12 +103,10 @@ fn generate_bindings() {
         // We just use one big generated header created by concatenating what we need.
         .header(header)
         .size_t_is_usize(true)
-        .rustfmt_bindings(true)
         .layout_tests(true)
         .derive_copy(true)
         .impl_debug(true)
         .prepend_enum_name(false)
-        .rust_target(bindgen::RustTarget::Stable_1_36)
         .generate()
         .expect("failed to generate bindings");
 
@@ -243,7 +241,7 @@ fn apply_flags(b: &mut cc::Build) {
         b.flag_if_supported("-mavx2");
     }
 
-    if cfg!(target_feature = "avx512") && !(cfg!(feature = "ma-no-avx512")) {
+    if cfg!(target_feature = "avx512f") && !(cfg!(feature = "ma-no-avx512")) {
         b.flag_if_supported("-mavx512");
     }
 
@@ -314,7 +312,7 @@ fn emit_supported_features() {
     let mut support_webaudio = false;
     let mut support_null = false;
 
-    if !cfg!(target_feature = "no-device-io") {
+    if !cfg!(feature = "ma-no-device-io") {
         if ma_win32 {
             support_wasapi = true;
             if ma_win32_desktop {

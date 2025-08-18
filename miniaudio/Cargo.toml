@@ -2,7 +2,7 @@
 name = "om-fork-miniaudio"
 version = "0.12.2"
 authors = ["Adolph C. <adolphc@outlook.com>", "anti <andreas@omni-mad.com>"]
-edition = "2018"
+edition = "2024"
 description = "Bindings to the miniaudio C library. Fork until upstream is updated!"
 documentation = "https://docs.rs/miniaudio"
 repository = "https://github.com/andreasOM/miniaudio-rs"
@@ -20,7 +20,7 @@ include = [
 [lib]
 name = "miniaudio"
 path = "src/lib.rs"
-crate_type = ["lib"]
+crate-type = ["lib"]
 
 [features]
 default = ["ma-log-level-error", "bindgen"]
@@ -64,4 +64,3 @@ ma-debug-output = ["om-fork-ep-miniaudio-sys/ma-debug-output"]
 [dependencies]
 om-fork-ep-miniaudio-sys = { version = "2.6.2", path = "../miniaudio-sys", default-features = false }
 bitflags = "2.8.0"
-

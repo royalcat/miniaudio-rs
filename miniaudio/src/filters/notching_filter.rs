@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use super::biquad_filtering::Biquad;
 use super::Filter;
 use crate::base::{Error, Format};
@@ -86,6 +88,7 @@ impl Notch2 {
         unsafe {
             Error::from_c_result(sys::ma_notch2_init(
                 config as *const Notch2Config as *const _,
+                null(),
                 notch2.as_mut_ptr() as *mut _,
             ))?;
             Ok(notch2.assume_init())

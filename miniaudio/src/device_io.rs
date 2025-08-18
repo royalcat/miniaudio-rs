@@ -11,16 +11,16 @@ use std::ptr;
 use std::ptr::NonNull;
 use std::sync::Arc;
 
-type MADeviceConfigPlayback = sys::ma_device_config__bindgen_ty_2;
-type MADeviceConfigCapture = sys::ma_device_config__bindgen_ty_3;
+type MADeviceConfigPlayback = sys::ma_device_config__bindgen_ty_1;
+type MADeviceConfigCapture = sys::ma_device_config__bindgen_ty_2;
 
 type MADevicePlayback = sys::ma_device__bindgen_ty_2;
 type MADeviceCapture = sys::ma_device__bindgen_ty_3;
 
-type MAContextConfigAlsa = sys::ma_context_config__bindgen_ty_1;
-type MAContextConfigPulse = sys::ma_context_config__bindgen_ty_2;
-type MAContextConfigCoreAudio = sys::ma_context_config__bindgen_ty_3;
-type MAContextConfigJack = sys::ma_context_config__bindgen_ty_4;
+type MAContextConfigAlsa = sys::ma_context_config__bindgen_ty_2;
+type MAContextConfigPulse = sys::ma_context_config__bindgen_ty_3;
+type MAContextConfigCoreAudio = sys::ma_context_config__bindgen_ty_4;
+type MAContextConfigJack = sys::ma_context_config__bindgen_ty_5;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -145,6 +145,15 @@ pub struct DeviceId(sys::ma_device_id);
 #[derive(Clone)]
 pub struct DeviceInfo(sys::ma_device_info);
 
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DeviceNativeDataFormat {
+    pub format: Format,
+    pub channels: u32,
+    pub sample_rate: u32,
+    pub flags: u32,
+}
+
 impl DeviceInfo {
     #[inline]
     pub fn id(&self) -> &DeviceId {
@@ -160,38 +169,19 @@ impl DeviceInfo {
     }
 
     #[inline]
-    pub fn format_count(&self) -> u32 {
-        self.0.formatCount
+    pub fn native_data_format_count(&self) -> u32 {
+        self.0.nativeDataFormatCount
     }
 
     #[inline]
-    pub fn formats(&self) -> &[Format] {
+    pub fn formats(&self) -> &[DeviceNativeDataFormat] {
         unsafe {
             std::slice::from_raw_parts(
-                &self.0.formats as *const sys::ma_format as *const Format,
-                self.format_count() as usize,
+                &self.0.nativeDataFormats as *const sys::ma_device_info__bindgen_ty_1
+                    as *const DeviceNativeDataFormat,
+                self.native_data_format_count() as usize,
             )
         }
-    }
-
-    #[inline]
-    pub fn min_channels(&self) -> u32 {
-        self.0.minChannels
-    }
-
-    #[inline]
-    pub fn max_channels(&self) -> u32 {
-        self.0.maxChannels
-    }
-
-    #[inline]
-    pub fn min_sample_rate(&self) -> u32 {
-        self.0.minSampleRate
-    }
-
-    #[inline]
-    pub fn max_sample_rate(&self) -> u32 {
-        self.0.maxSampleRate
     }
 }
 
@@ -260,12 +250,12 @@ impl DeviceConfig {
         self.0.performanceProfile = profile as _
     }
 
-    pub fn no_pre_zeroed_output_buffer(&self) -> bool {
-        from_bool8(self.0.noPreZeroedOutputBuffer)
+    pub fn no_pre_silenced_output_buffer(&self) -> bool {
+        from_bool8(self.0.noPreSilencedOutputBuffer)
     }
 
-    pub fn set_no_pre_zeroed_output_buffer(&mut self, value: bool) {
-        self.0.noPreZeroedOutputBuffer = to_bool8(value);
+    pub fn set_no_pre_silenced_output_buffer(&mut self, value: bool) {
+        self.0.noPreSilencedOutputBuffer = to_bool8(value);
     }
 
     pub fn no_clip(&self) -> bool {
@@ -307,11 +297,6 @@ impl DeviceConfig {
         match self.0.resampling.algorithm {
             sys::ma_resample_algorithm_linear => ResampleAlgorithm::Linear {
                 lpf_order: self.0.resampling.linear.lpfOrder,
-                lpf_nyquist_factor: 1.0,
-            },
-
-            sys::ma_resample_algorithm_speex => ResampleAlgorithm::Speex {
-                quality: self.0.resampling.speex.quality as u32,
             },
 
             _ => unreachable!(),
@@ -321,18 +306,9 @@ impl DeviceConfig {
     #[inline]
     pub fn set_resampling(&mut self, algo: ResampleAlgorithm) {
         match algo {
-            ResampleAlgorithm::Linear {
-                lpf_order,
-                lpf_nyquist_factor,
-            } => {
-                let _ = lpf_nyquist_factor;
+            ResampleAlgorithm::Linear { lpf_order } => {
                 self.0.resampling.algorithm = sys::ma_resample_algorithm_linear;
                 self.0.resampling.linear.lpfOrder = lpf_order;
-            }
-
-            ResampleAlgorithm::Speex { quality } => {
-                self.0.resampling.algorithm = sys::ma_resample_algorithm_speex;
-                self.0.resampling.speex.quality = quality as _;
             }
         }
     }
@@ -559,19 +535,19 @@ impl DeviceConfigPlayback {
         self.0.channels = channels;
     }
 
-    pub fn channel_map(&self) -> &[Channel; MAX_CHANNELS] {
-        unsafe {
-            &*(&self.0.channelMap as *const [sys::ma_channel; MAX_CHANNELS]
-                as *const [Channel; MAX_CHANNELS])
-        }
-    }
+    // pub fn channel_map(&self) -> &[Channel; MAX_CHANNELS] {
+    //     unsafe {
+    //         &*(&self.0.pChannelMap as *const [sys::ma_channel; MAX_CHANNELS]
+    //             as *const [Channel; MAX_CHANNELS])
+    //     }
+    // }
 
-    pub fn channel_map_mut(&mut self) -> &mut [Channel; MAX_CHANNELS] {
-        unsafe {
-            &mut *(&mut self.0.channelMap as *mut [sys::ma_channel; MAX_CHANNELS]
-                as *mut [Channel; MAX_CHANNELS])
-        }
-    }
+    // pub fn channel_map_mut(&mut self) -> &mut [Channel; MAX_CHANNELS] {
+    //     unsafe {
+    //         &mut *(&mut self.0.channelMap as *mut [sys::ma_channel; MAX_CHANNELS]
+    //             as *mut [Channel; MAX_CHANNELS])
+    //     }
+    // }
 
     pub fn share_mode(&self) -> ShareMode {
         ShareMode::from_c(self.0.shareMode)
@@ -635,19 +611,19 @@ impl DeviceConfigCapture {
         self.0.channels = channels;
     }
 
-    pub fn channel_map(&self) -> &[Channel; MAX_CHANNELS] {
-        unsafe {
-            &*(&self.0.channelMap as *const [sys::ma_channel; MAX_CHANNELS]
-                as *const [Channel; MAX_CHANNELS])
-        }
-    }
+    // pub fn channel_map(&self) -> &[Channel; MAX_CHANNELS] {
+    //     unsafe {
+    //         &*(&self.0.pChannelMap as *const [sys::ma_channel; MAX_CHANNELS]
+    //             as *const [Channel; MAX_CHANNELS])
+    //     }
+    // }
 
-    pub fn channel_map_mut(&mut self) -> &mut [Channel; MAX_CHANNELS] {
-        unsafe {
-            &mut *(&mut self.0.channelMap as *mut [sys::ma_channel; MAX_CHANNELS]
-                as *mut [Channel; MAX_CHANNELS])
-        }
-    }
+    // pub fn channel_map_mut(&mut self) -> &mut [Channel; MAX_CHANNELS] {
+    //     unsafe {
+    //         &mut *(&mut self.0.channelMap as *mut [sys::ma_channel; MAX_CHANNELS]
+    //             as *mut [Channel; MAX_CHANNELS])
+    //     }
+    // }
 
     pub fn share_mode(&self) -> ShareMode {
         ShareMode::from_c(self.0.shareMode)
@@ -940,7 +916,6 @@ impl RawContext {
         &self,
         device_type: DeviceType,
         device_id: &DeviceId,
-        share_mode: ShareMode,
     ) -> Result<DeviceInfo, Error> {
         let mut device_info = MaybeUninit::<DeviceInfo>::uninit();
         let result = unsafe {
@@ -948,7 +923,6 @@ impl RawContext {
                 self as *const _ as *mut _,
                 device_type as _,
                 device_id as *const DeviceId as *mut _,
-                share_mode as _,
                 device_info.as_mut_ptr().cast(),
             )
         };
@@ -961,7 +935,6 @@ impl RawContext {
         &self,
         device_type: DeviceType,
         device_id: &DeviceId,
-        share_mode: ShareMode,
         device_info: &mut DeviceInfo,
     ) -> Result<(), Error> {
         Error::from_c_result(unsafe {
@@ -969,7 +942,6 @@ impl RawContext {
                 self as *const _ as *mut _,
                 device_type as _,
                 device_id as *const DeviceId as *mut _,
-                share_mode as _,
                 device_info as *mut DeviceInfo as *mut _,
             )
         })
@@ -1017,10 +989,6 @@ impl RawContext {
                 self.0.captureDeviceInfoCount as usize,
             )
         }
-    }
-
-    pub fn is_backend_asynchronous(&self) -> bool {
-        from_bool8(self.0.isBackendAsynchronous)
     }
 
     /// Retrieves basic information about every active playback and capture device. This function
@@ -1360,18 +1328,18 @@ impl RawDevice {
     /// ---------------
     /// Safe. If you set the volume in the data callback, that data written to the output buffer will have the new volume applied.
     #[inline]
-    pub fn set_master_gain_db(&self, gain_db: f32) -> Result<(), Error> {
+    pub fn set_master_volume_db(&self, gain_db: f32) -> Result<(), Error> {
         Error::from_c_result(unsafe {
-            sys::ma_device_set_master_gain_db(&self.0 as *const _ as *mut _, gain_db)
+            sys::ma_device_set_master_volume_db(&self.0 as *const _ as *mut _, gain_db)
         })
     }
 
     /// Retrieves the master gain in decibels.
     #[inline]
-    pub fn get_master_gain_db(&self) -> Result<f32, Error> {
+    pub fn get_master_volume_db(&self) -> Result<f32, Error> {
         let mut out = 0.0;
         map_result!(
-            unsafe { sys::ma_device_get_master_gain_db(&self.0 as *const _ as *mut _, &mut out) },
+            unsafe { sys::ma_device_get_master_volume_db(&self.0 as *const _ as *mut _, &mut out) },
             out
         )
     }
@@ -1394,11 +1362,6 @@ impl RawDevice {
         match self.0.resampling.algorithm {
             sys::ma_resample_algorithm_linear => ResampleAlgorithm::Linear {
                 lpf_order: self.0.resampling.linear.lpfOrder,
-                lpf_nyquist_factor: 1.0,
-            },
-
-            sys::ma_resample_algorithm_speex => ResampleAlgorithm::Speex {
-                quality: self.0.resampling.speex.quality as u32,
             },
 
             _ => unreachable!(),
@@ -1535,18 +1498,6 @@ impl DeviceCapture {
         ShareMode::from_c(self.0.shareMode)
     }
 
-    pub fn using_default_format(&self) -> bool {
-        from_bool8(self.0.usingDefaultFormat)
-    }
-
-    pub fn using_default_channels(&self) -> bool {
-        from_bool8(self.0.usingDefaultChannels)
-    }
-
-    pub fn using_default_channel_map(&self) -> bool {
-        from_bool8(self.0.usingDefaultChannelMap)
-    }
-
     pub fn format(&self) -> Format {
         Format::from_c(self.0.format)
     }
@@ -1576,18 +1527,6 @@ impl DevicePlayback {
 
     pub fn share_mode(&self) -> ShareMode {
         ShareMode::from_c(self.0.shareMode)
-    }
-
-    pub fn using_default_format(&self) -> bool {
-        from_bool8(self.0.usingDefaultFormat)
-    }
-
-    pub fn using_default_channels(&self) -> bool {
-        from_bool8(self.0.usingDefaultChannels)
-    }
-
-    pub fn using_default_channel_map(&self) -> bool {
-        from_bool8(self.0.usingDefaultChannelMap)
     }
 
     pub fn format(&self) -> Format {

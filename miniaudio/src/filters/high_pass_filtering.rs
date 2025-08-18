@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use super::biquad_filtering::Biquad;
 use super::Filter;
 use crate::base::{Error, Format};
@@ -152,6 +154,7 @@ impl HPF1 {
         unsafe {
             Error::from_c_result(sys::ma_hpf1_init(
                 config as *const HPF1Config as *const _,
+                null(),
                 hpf1.as_mut_ptr() as *mut _,
             ))?;
             Ok(hpf1.assume_init())
@@ -196,6 +199,7 @@ impl HPF2 {
         unsafe {
             Error::from_c_result(sys::ma_hpf2_init(
                 config as *const HPF2Config as *const _,
+                null(),
                 hpf2.as_mut_ptr() as *mut _,
             ))?;
             Ok(hpf2.assume_init())
@@ -314,6 +318,7 @@ impl HPF {
         unsafe {
             Error::from_c_result(sys::ma_hpf_init(
                 config as *const HPFConfig as *const _,
+                null(),
                 hpf.as_mut_ptr() as *mut _,
             ))?;
             Ok(hpf.assume_init())

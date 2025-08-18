@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use super::biquad_filtering::Biquad;
 use super::Filter;
 use crate::base::{Error, Format};
@@ -152,6 +154,7 @@ impl LPF1 {
         unsafe {
             Error::from_c_result(sys::ma_lpf1_init(
                 config as *const LPF1Config as *const _,
+                null(),
                 lpf1.as_mut_ptr() as *mut _,
             ))?;
             Ok(lpf1.assume_init())
@@ -196,6 +199,7 @@ impl LPF2 {
         unsafe {
             Error::from_c_result(sys::ma_lpf2_init(
                 config as *const LPF2Config as *const _,
+                null(),
                 lpf2.as_mut_ptr() as *mut _,
             ))?;
             Ok(lpf2.assume_init())
@@ -312,6 +316,7 @@ impl LPF {
         unsafe {
             Error::from_c_result(sys::ma_lpf_init(
                 config as *const LPFConfig as *const _,
+                null(),
                 lpf.as_mut_ptr() as *mut _,
             ))?;
             Ok(lpf.assume_init())

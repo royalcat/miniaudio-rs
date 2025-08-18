@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use super::Filter;
 use crate::base::*;
 use crate::frames::{Frames, FramesMut};
@@ -103,7 +105,7 @@ impl Biquad {
     pub fn new(config: &BiquadConfig) -> Result<Biquad, Error> {
         let mut biquad = std::mem::MaybeUninit::uninit();
         unsafe {
-            let result = sys::ma_biquad_init(&config.0, biquad.as_mut_ptr());
+            let result = sys::ma_biquad_init(&config.0, null(), biquad.as_mut_ptr());
             map_result!(result, Biquad(biquad.assume_init()))
         }
     }

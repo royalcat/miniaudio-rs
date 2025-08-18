@@ -23,7 +23,7 @@ pub fn main() {
     let playback_decoder = decoder.clone();
     config.set_data_callback(move |_device, output, _frames| {
         if !playback_rewind.load(Ordering::Acquire) {
-            let frames = playback_decoder.read_pcm_frames(output);
+            let frames = playback_decoder.read_pcm_frames(output).unwrap();
 
             // If there were no more frames read, request a rewind.
             if frames == 0 {

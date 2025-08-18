@@ -1,4 +1,3 @@
-use crate::base::*;
 use crate::lock::{RwLockReadGuard, RwLockWriteGuard, SpinRwLock};
 use crate::{Error, Format, FramesMut};
 use miniaudio_sys as sys;
@@ -29,7 +28,7 @@ pub struct RawDecoder {
 
 impl RawDecoder {
     #[inline]
-    pub fn read_pcm_frames(&mut self, output: &mut FramesMut) -> u64 {
+    pub fn read_pcm_frames(&mut self, output: &mut FramesMut) -> Result<u64, Error> {
         assert!(
             output.format() == self.output_format(),
             "output and decoder format did not match (output: {:?}, input: {:?}",
@@ -37,18 +36,29 @@ impl RawDecoder {
             self.output_format()
         );
 
-        unsafe {
+        let mut frames_read: u64 = 0;
+
+        Error::from_c_result(unsafe {
             sys::ma_decoder_read_pcm_frames(
                 &self.inner as *const _ as *mut _,
                 output.as_mut_ptr() as *mut _,
                 output.frame_count() as u64,
+                &mut frames_read,
             )
-        }
+        })?;
+
+        return Ok(frames_read);
     }
 
     #[inline]
-    pub fn length_in_pcm_frames(&mut self) -> u64 {
-        unsafe { sys::ma_decoder_get_length_in_pcm_frames(&self.inner as *const _ as *mut _) }
+    pub fn length_in_pcm_frames(&mut self) -> Result<u64, Error> {
+        let mut length: u64 = 0;
+
+        Error::from_c_result(unsafe {
+            sys::ma_decoder_get_length_in_pcm_frames(&self.inner as *const _ as *mut _, &mut length)
+        });
+
+        return Ok(length);
     }
 
     #[inline]
@@ -162,18 +172,18 @@ impl SyncDecoder {
     /// This will block until the lock for the inner decoder is acquired before calling
     /// `read_pcm_frames`.
     #[inline]
-    pub fn read_pcm_frames(&self, output: &mut FramesMut) -> u64 {
+    pub fn read_pcm_frames(&self, output: &mut FramesMut) -> Result<u64, Error> {
         self.inner.write().read_pcm_frames(output)
     }
 
     /// This will immediately return with 0 if the inner decoder is currently locked, if it is not
     /// this will acquire the lock and return the number of frames written.
     #[inline]
-    pub fn try_read_pcm_frames(&self, output: &mut FramesMut) -> u64 {
+    pub fn try_read_pcm_frames(&self, output: &mut FramesMut) -> Result<u64, Error> {
         if let Some(ref mut locked) = self.inner.try_write() {
             locked.read_pcm_frames(output)
         } else {
-            0
+            Ok(0)
         }
     }
 
@@ -183,7 +193,7 @@ impl SyncDecoder {
     }
 
     #[inline]
-    pub fn length_in_pcm_frames(&self) -> u64 {
+    pub fn length_in_pcm_frames(&self) -> Result<u64, Error> {
         self.inner.write().length_in_pcm_frames()
     }
 
@@ -336,7 +346,8 @@ unsafe extern "C" fn decoder_read_with_reader(
     decoder: *mut sys::ma_decoder,
     buffer_out: *mut std::ffi::c_void,
     bytes_to_read: usize,
-) -> usize {
+    bytes_read: *mut usize,
+) -> sys::ma_result {
     if decoder.is_null() {
         return 0;
     }
@@ -344,16 +355,18 @@ unsafe extern "C" fn decoder_read_with_reader(
     let reader: &mut Box<dyn SeekRead> = &mut *((*decoder).pUserData as *mut _);
     let buffer = std::slice::from_raw_parts_mut(buffer_out as _, bytes_to_read);
 
-    reader.read(buffer).ok().unwrap_or(0)
+    *bytes_read = reader.read(buffer).unwrap_or(0);
+
+    return sys::MA_SUCCESS;
 }
 
 unsafe extern "C" fn decoder_seek_with_reader(
     decoder: *mut sys::ma_decoder,
-    byte_offset: std::os::raw::c_int,
+    byte_offset: sys::ma_int64,
     origin: sys::ma_seek_origin,
-) -> sys::ma_bool32 {
+) -> sys::ma_result {
     if decoder.is_null() {
-        return to_bool32(false);
+        return 0;
     }
 
     let reader: &mut Box<dyn SeekRead> = &mut *((*decoder).pUserData as *mut _);
@@ -367,7 +380,13 @@ unsafe extern "C" fn decoder_seek_with_reader(
         _ => unreachable!("unknown seek origin"),
     };
 
-    to_bool32(reader.seek(pos).is_ok())
+    reader.seek(pos).map_or_else(
+        |err| {
+            eprintln!("Failed to seek in decoder: {}", err);
+            sys::MA_INVALID_OPERATION
+        },
+        |_| sys::MA_SUCCESS,
+    )
 }
 
 impl Deref for Decoder {

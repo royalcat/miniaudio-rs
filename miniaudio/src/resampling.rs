@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use crate::base::{Error, Format};
 use crate::frames::{Frames, FramesMut};
 use miniaudio_sys as sys;
@@ -6,7 +8,6 @@ use miniaudio_sys as sys;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ResampleAlgorithmType {
     Linear = sys::ma_resample_algorithm_linear as _,
-    Speex = sys::ma_resample_algorithm_speex as _,
 }
 impl_from_c!(ResampleAlgorithmType, sys::ma_resample_algorithm);
 
@@ -17,21 +18,13 @@ impl_from_c!(ResampleAlgorithmType, sys::ma_resample_algorithm);
 /// for memory management.
 #[derive(Clone, Copy, PartialEq)]
 pub enum ResampleAlgorithm {
-    Linear {
-        lpf_order: u32,
-        lpf_nyquist_factor: f64,
-    },
-
-    Speex {
-        quality: u32,
-    },
+    Linear { lpf_order: u32 },
 }
 
 impl ResampleAlgorithm {
     pub fn algorithm_type(&self) -> ResampleAlgorithmType {
         match *self {
             ResampleAlgorithm::Linear { .. } => ResampleAlgorithmType::Linear,
-            ResampleAlgorithm::Speex { .. } => ResampleAlgorithmType::Speex,
         }
     }
 }
@@ -118,6 +111,7 @@ impl LinearResampler {
         unsafe {
             Error::from_c_result(sys::ma_linear_resampler_init(
                 config as *const LinearResamplerConfig as *const _,
+                null(),
                 lr.as_mut_ptr() as *mut _,
             ))?;
             Ok(lr.assume_init())
@@ -192,24 +186,34 @@ impl LinearResampler {
     /// specified number of output frames.
     #[inline]
     pub fn required_input_frame_count(&self, output_frame_count: u64) -> u64 {
+        let mut input_frame_count: u64 = 0;
+
         unsafe {
             sys::ma_linear_resampler_get_required_input_frame_count(
                 &self.0 as *const _ as *mut _,
                 output_frame_count,
-            )
+                &mut input_frame_count,
+            );
         }
+
+        return input_frame_count;
     }
 
     /// Calculates the number of whole output frames that would be output after fully reading and
     /// consuming the specified number of input frames.
     #[inline]
     pub fn expected_output_frame_count(&self, input_frame_count: u64) -> u64 {
+        let mut output_frame_count: u64 = 0;
+
         unsafe {
             sys::ma_linear_resampler_get_expected_output_frame_count(
                 &self.0 as *const _ as *mut _,
                 input_frame_count,
-            )
+                &mut output_frame_count,
+            );
         }
+
+        return output_frame_count;
     }
     #[inline]
 
@@ -247,7 +251,7 @@ impl LinearResampler {
 
 impl Drop for LinearResampler {
     fn drop(&mut self) {
-        unsafe { sys::ma_linear_resampler_uninit(self as *mut LinearResampler as *mut _) };
+        unsafe { sys::ma_linear_resampler_uninit(self as *mut LinearResampler as *mut _, null()) };
     }
 }
 
@@ -313,18 +317,9 @@ impl ResamplerConfig {
 
     pub fn set_algorithm(&mut self, algo: ResampleAlgorithm) {
         match algo {
-            ResampleAlgorithm::Linear {
-                lpf_order,
-                lpf_nyquist_factor,
-            } => {
+            ResampleAlgorithm::Linear { lpf_order } => {
                 self.0.algorithm = sys::ma_resample_algorithm_linear;
                 self.0.linear.lpfOrder = lpf_order;
-                self.0.linear.lpfNyquistFactor = lpf_nyquist_factor;
-            }
-
-            ResampleAlgorithm::Speex { quality } => {
-                self.0.algorithm = sys::ma_resample_algorithm_speex;
-                self.0.speex.quality = quality as _;
             }
         }
     }
@@ -333,11 +328,6 @@ impl ResamplerConfig {
         match self.0.algorithm {
             sys::ma_resample_algorithm_linear => ResampleAlgorithm::Linear {
                 lpf_order: self.0.linear.lpfOrder,
-                lpf_nyquist_factor: self.0.linear.lpfNyquistFactor,
-            },
-
-            sys::ma_resample_algorithm_speex => ResampleAlgorithm::Speex {
-                quality: self.0.speex.quality as _,
             },
 
             _ => unreachable!(),
@@ -352,15 +342,16 @@ impl Resampler {
     pub fn new(config: &ResamplerConfig) -> Result<Resampler, Error> {
         let mut resampler = std::mem::MaybeUninit::<Resampler>::uninit();
         unsafe {
-            sys::ma_resampler_init(&config.0, resampler.as_mut_ptr() as *mut _);
+            sys::ma_resampler_init(&config.0, null(), resampler.as_mut_ptr() as *mut _);
             Ok(resampler.assume_init())
         }
     }
 
-    #[inline]
-    pub fn config(&self) -> &ResamplerConfig {
-        unsafe { &*(&self.0.config as *const sys::ma_resampler_config as *const ResamplerConfig) }
-    }
+    // FIXME
+    // #[inline]
+    // pub fn config(&self) -> &ResamplerConfig {
+    //     unsafe { &*(&self.0.config as *const sys::ma_resampler_config as *const ResamplerConfig) }
+    // }
 
     // FIXME this API actually allows passing null for input or output and does this:
     //
@@ -429,24 +420,34 @@ impl Resampler {
     /// specified number of output frames.
     #[inline]
     pub fn required_input_frame_count(&self, output_frame_count: u64) -> u64 {
+        let mut input_frame_count: u64 = 0;
+
         unsafe {
             sys::ma_resampler_get_required_input_frame_count(
                 &self.0 as *const _ as *mut _,
                 output_frame_count,
-            )
+                &mut input_frame_count,
+            );
         }
+
+        return input_frame_count;
     }
 
     /// Calculates the number of whole output frames that would be output after fully reading and
     /// consuming the specified number of input frames.
     #[inline]
     pub fn expected_output_frame_count(&self, input_frame_count: u64) -> u64 {
+        let mut output_frame_count: u64 = 0;
+
         unsafe {
             sys::ma_linear_resampler_get_expected_output_frame_count(
                 &self.0 as *const _ as *mut _,
                 input_frame_count,
-            )
+                &mut output_frame_count,
+            );
         }
+
+        return output_frame_count;
     }
     #[inline]
 
@@ -462,15 +463,15 @@ impl Resampler {
     }
 }
 
-impl Clone for Resampler {
-    fn clone(&self) -> Self {
-        // This should not fail if the resampler was properly initialized.
-        Self::new(self.config()).expect("failed to clone resampler")
-    }
-}
+// impl Clone for Resampler {
+//     fn clone(&self) -> Self {
+//         // This should not fail if the resampler was properly initialized.
+//         Self::new(self.config()).expect("failed to clone resampler")
+//     }
+// }
 
 impl Drop for Resampler {
     fn drop(&mut self) {
-        unsafe { sys::ma_resampler_uninit(&mut self.0) };
+        unsafe { sys::ma_resampler_uninit(&mut self.0, null()) };
     }
 }

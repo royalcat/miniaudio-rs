@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use super::biquad_filtering::Biquad;
 use super::Filter;
 use crate::base::{Error, Format};
@@ -104,6 +106,7 @@ impl HighShelf2 {
         unsafe {
             Error::from_c_result(sys::ma_hishelf2_init(
                 config as *const HighShelf2Config as *const _,
+                null(),
                 hishelf2.as_mut_ptr() as *mut _,
             ))?;
             Ok(hishelf2.assume_init())

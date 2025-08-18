@@ -7,8 +7,7 @@ pub struct ChannelMap<'m> {
 }
 
 impl<'m> ChannelMap<'m> {
-    pub fn set(index: usize, channel_in: Channel, channel_out: Channel) {
-    }
+    pub fn set(index: usize, channel_in: Channel, channel_out: Channel) {}
 }
 
-pub struct ChannelMapIn()
+pub struct ChannelMapIn();

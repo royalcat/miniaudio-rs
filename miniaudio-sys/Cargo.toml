@@ -2,7 +2,7 @@
 name = "om-fork-ep-miniaudio-sys"
 version = "2.6.2"
 authors = ["ExPixel <adolphc@outlook.com>", "anti <andreas@omni-mad.com>"]
-edition = "2018"
+edition = "2024"
 description = "Raw bindings to the miniaudio C library. Fork until upstream is updated!"
 documentation = "https://docs.rs/ep-miniaudio-sys"
 repository = "https://github.com/andreasOM/miniaudio-rs"
@@ -27,7 +27,7 @@ include = [
 [lib]
 name = "miniaudio_sys"
 path = "src/lib.rs"
-crate_type = ["lib"]
+crate-type = ["lib"]
 
 [features]
 default = ["ma-log-level-error", "bindgen"]
@@ -66,6 +66,7 @@ ma-log-level-warning = []
 ma-log-level-error = []
 
 ma-debug-output = []
+bindgen = ["dep:bindgen"]
 
 [dependencies]
 libc = "0.2"
@@ -73,4 +74,4 @@ bitflags = "2.8.0"
 
 [build-dependencies]
 cc = "1.0"
-bindgen = { version = "0.71.1", default-features = false, features = ["runtime"], optional = true }
+bindgen = { version = "0.72.0", default-features = false, features = ["runtime"], optional = true }

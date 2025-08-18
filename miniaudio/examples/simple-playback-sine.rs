@@ -4,9 +4,11 @@ use miniaudio::{Waveform, WaveformConfig, WaveformType};
 pub type DeviceFormatType = f32;
 pub const DEVICE_FORMAT: Format = Format::F32;
 pub const DEVICE_CHANNELS: u32 = 2;
-pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::SAMPLE_RATE_48000;
+pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::STANDARD_SAMPLE_RATE_48000;
 
 pub fn main() {
+    panic!("TODO fix, example not working due sine_wave not implementing Sync trait for now");
+
     let sine_wave_config = WaveformConfig::new(
         DEVICE_FORMAT,
         DEVICE_CHANNELS,
@@ -22,9 +24,10 @@ pub fn main() {
     device_config.playback_mut().set_channels(DEVICE_CHANNELS);
     device_config.set_sample_rate(DEVICE_SAMPLE_RATE);
 
-    device_config.set_data_callback(move |_device, output, _input| {
-        sine_wave.read_pcm_frames(output);
-    });
+    // FIXME
+    // device_config.set_data_callback(move |_device, output, _input| {
+    //     sine_wave.read_pcm_frames(output);
+    // });
 
     device_config.set_stop_callback(|_device| {
         println!("Device Stopped.");
