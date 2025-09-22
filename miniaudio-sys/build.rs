@@ -10,7 +10,7 @@ pub fn main() {
     cc_builder.cpp(false).define("MINIAUDIO_IMPLEMENTATION", "");
 
     // This removes an annoying unused function warning from miniaudio.
-    cc_builder.flag_if_supported("-Wno-unused-function");
+    // cc_builder.flag_if_supported("-Wno-unused-function");
 
     apply_flags(&mut cc_builder);
     apply_definitions(|name, value| {
@@ -29,15 +29,7 @@ pub fn main() {
 
     emit_supported_features();
 
-    #[cfg(feature = "bindgen")]
-    {
-        generate_bindings();
-    }
-
-    #[cfg(not(feature = "bindgen"))]
-    {
-        check_pregenerated_bindings();
-    }
+    generate_bindings();
 
     // only rebuild if these files are changed.
     println!("cargo:rerun-if-changed=./miniaudio/miniaudio.h");
@@ -45,47 +37,6 @@ pub fn main() {
     println!("cargo:rerun-if-env-changed=CC");
 }
 
-#[cfg(not(feature = "bindgen"))]
-fn check_pregenerated_bindings() {
-    use std::path::Path;
-
-    warn!("using pre-generated bindings - these are not guaranteed to always work (!!!)");
-
-    let os = std::env::consts::OS;
-    let arch = std::env::consts::ARCH;
-    let subdir = format!("{}-{}", os, arch);
-    let bindings_dir = Path::new("bindings").join(subdir);
-
-    if !bindings_dir.is_dir() {
-        panic!(
-            "bindings for {}-{} do not exist in `{}`, please enable the `bindgen` feature instead",
-            os,
-            arch,
-            bindings_dir.display()
-        );
-    }
-
-    let bindings_file = if cfg!(feature = "ma-enable-vorbis") {
-        bindings_dir.join("bindings-with-vorbis.rs").canonicalize()
-    } else {
-        bindings_dir.join("bindings.rs").canonicalize()
-    }
-    .expect("failed to canonicalize bindings path, please enable the `bindgen` feature instead");
-
-    if let Some(bindings_file_str) = bindings_file.to_str() {
-        println!(
-            "cargo:rustc-env=MINIAUDIO_SYS_BINDINGS_FILE={}",
-            bindings_file_str
-        );
-    } else {
-        panic!(
-            "bindings file path ({}) is not valid UTF-8, please use `bindgen` feature instead",
-            bindings_file.display()
-        );
-    }
-}
-
-#[cfg(feature = "bindgen")]
 fn generate_bindings() {
     use std::path::PathBuf;
 
@@ -102,6 +53,7 @@ fn generate_bindings() {
         .allowlist_var("(ma|MA)_.*")
         // We just use one big generated header created by concatenating what we need.
         .header(header)
+        .ctypes_prefix("libc")
         .size_t_is_usize(true)
         .layout_tests(true)
         .derive_copy(true)
@@ -115,10 +67,10 @@ fn generate_bindings() {
         .write_to_file(&out_path)
         .expect("failed to write bindings");
 
-    println!(
-        "cargo:rustc-env=MINIAUDIO_SYS_BINDINGS_FILE={}",
-        out_path.display()
-    );
+    // println!(
+    //     "cargo:rustc-env=MINIAUDIO_SYS_BINDINGS_FILE={}",
+    //     out_path.display()
+    // );
 }
 
 /// Calls the given closure with the macro definitions that map to features in miniaudio that are enabled

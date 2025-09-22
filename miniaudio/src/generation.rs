@@ -191,12 +191,12 @@ pub struct LCG(sys::ma_lcg);
 
 impl LCG {
     #[inline]
-    pub fn state(self) -> i32 {
+    pub fn state(self) -> u32 {
         self.0.state
     }
 
     #[inline]
-    pub fn set_state(&mut self, state: i32) {
+    pub fn set_state(&mut self, state: u32) {
         self.0.state = state;
     }
 }

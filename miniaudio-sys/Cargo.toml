@@ -27,10 +27,10 @@ include = [
 [lib]
 name = "miniaudio_sys"
 path = "src/lib.rs"
-crate-type = ["lib"]
+crate-type = ["lib", "staticlib"]
 
 [features]
-default = ["ma-log-level-error", "bindgen"]
+default = ["ma-log-level-error"]
 
 ma-enable-vorbis = []
 
@@ -66,7 +66,6 @@ ma-log-level-warning = []
 ma-log-level-error = []
 
 ma-debug-output = []
-bindgen = ["dep:bindgen"]
 
 [dependencies]
 libc = "0.2"
@@ -74,4 +73,4 @@ bitflags = "2.8.0"
 
 [build-dependencies]
 cc = "1.0"
-bindgen = { version = "0.72.0", default-features = false, features = ["runtime"], optional = true }
+bindgen = { version = "0.72.1", default-features = false, features = ["runtime"] }
