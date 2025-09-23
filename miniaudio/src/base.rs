@@ -500,38 +500,26 @@ impl Default for PerformanceProfile {
     }
 }
 
-// Standard Sample Rates:
-pub const STANDARD_SAMPLE_RATE_8000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_8000;
-pub const STANDARD_SAMPLE_RATE_11025: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_11025;
-pub const STANDARD_SAMPLE_RATE_16000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_16000;
-pub const STANDARD_SAMPLE_RATE_22050: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_22050;
-pub const STANDARD_SAMPLE_RATE_24000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_24000;
-pub const STANDARD_SAMPLE_RATE_32000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_32000;
-pub const STANDARD_SAMPLE_RATE_44100: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_44100;
-pub const STANDARD_SAMPLE_RATE_48000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_48000;
-pub const STANDARD_SAMPLE_RATE_88200: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_88200;
-pub const STANDARD_SAMPLE_RATE_96000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_96000;
-pub const STANDARD_SAMPLE_RATE_176400: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_176400;
-pub const STANDARD_SAMPLE_RATE_192000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_192000;
-pub const STANDARD_SAMPLE_RATE_352800: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_352800;
-pub const STANDARD_SAMPLE_RATE_384000: sys::ma_standard_sample_rate =
-    sys::ma_standard_sample_rate_384000;
+pub type StandardSampleRate = sys::ma_standard_sample_rate;
 
-pub const MIN_SAMPLE_RATE: sys::ma_standard_sample_rate = STANDARD_SAMPLE_RATE_8000;
-pub const MAX_SAMPLE_RATE: sys::ma_standard_sample_rate = STANDARD_SAMPLE_RATE_384000;
+// Standard Sample Rates:
+pub const STANDARD_SAMPLE_RATE_8000: StandardSampleRate = sys::ma_standard_sample_rate_8000;
+pub const STANDARD_SAMPLE_RATE_11025: StandardSampleRate = sys::ma_standard_sample_rate_11025;
+pub const STANDARD_SAMPLE_RATE_16000: StandardSampleRate = sys::ma_standard_sample_rate_16000;
+pub const STANDARD_SAMPLE_RATE_22050: StandardSampleRate = sys::ma_standard_sample_rate_22050;
+pub const STANDARD_SAMPLE_RATE_24000: StandardSampleRate = sys::ma_standard_sample_rate_24000;
+pub const STANDARD_SAMPLE_RATE_32000: StandardSampleRate = sys::ma_standard_sample_rate_32000;
+pub const STANDARD_SAMPLE_RATE_44100: StandardSampleRate = sys::ma_standard_sample_rate_44100;
+pub const STANDARD_SAMPLE_RATE_48000: StandardSampleRate = sys::ma_standard_sample_rate_48000;
+pub const STANDARD_SAMPLE_RATE_88200: StandardSampleRate = sys::ma_standard_sample_rate_88200;
+pub const STANDARD_SAMPLE_RATE_96000: StandardSampleRate = sys::ma_standard_sample_rate_96000;
+pub const STANDARD_SAMPLE_RATE_176400: StandardSampleRate = sys::ma_standard_sample_rate_176400;
+pub const STANDARD_SAMPLE_RATE_192000: StandardSampleRate = sys::ma_standard_sample_rate_192000;
+pub const STANDARD_SAMPLE_RATE_352800: StandardSampleRate = sys::ma_standard_sample_rate_352800;
+pub const STANDARD_SAMPLE_RATE_384000: StandardSampleRate = sys::ma_standard_sample_rate_384000;
+
+pub const MIN_SAMPLE_RATE: StandardSampleRate = STANDARD_SAMPLE_RATE_8000;
+pub const MAX_SAMPLE_RATE: StandardSampleRate = STANDARD_SAMPLE_RATE_384000;
 
 /// Minimum number of channels in a channel map.
 pub const MIN_CHANNELS: usize = sys::MA_MIN_CHANNELS as usize;
