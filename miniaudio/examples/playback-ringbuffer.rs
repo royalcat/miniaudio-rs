@@ -1,12 +1,12 @@
 use miniaudio::{Device, DeviceConfig, DeviceType, Format, FramesMut};
 use miniaudio::{Waveform, WaveformConfig, WaveformType};
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 pub type DeviceFormatType = f32;
 pub const DEVICE_FORMAT: Format = Format::F32;
 pub const DEVICE_CHANNELS: u32 = 2;
-pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::STANDARD_SAMPLE_RATE_48000;
+pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::StandardSampleRate::Hz48000 as u32;
 pub const SUBBUFFER_LEN: usize = 1024;
 pub const SUBBUFFER_COUNT: usize = 16;
 

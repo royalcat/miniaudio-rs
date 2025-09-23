@@ -2,7 +2,7 @@ use std::{thread::sleep, time::Duration};
 
 const DEVICE_FORMAT: miniaudio::Format = miniaudio::Format::F32;
 const DEVICE_CHANNELS: u32 = 1;
-const DEVICE_SAMPLE_RATE: u32 = miniaudio::STANDARD_SAMPLE_RATE_48000;
+const DEVICE_SAMPLE_RATE: u32 = miniaudio::StandardSampleRate::Hz48000 as u32;
 const SUBBUFFER_LEN: usize = 8192;
 const SUBBUFFER_COUNT: usize = 16;
 
