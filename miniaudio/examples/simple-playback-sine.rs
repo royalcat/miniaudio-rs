@@ -4,7 +4,7 @@ use miniaudio::{Waveform, WaveformConfig, WaveformType};
 pub type DeviceFormatType = f32;
 pub const DEVICE_FORMAT: Format = Format::F32;
 pub const DEVICE_CHANNELS: u32 = 2;
-pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::STANDARD_SAMPLE_RATE_48000;
+pub const DEVICE_SAMPLE_RATE: u32 = miniaudio::StandardSampleRate::Hz48000 as u32;
 
 pub fn main() {
     panic!("TODO fix, example not working due sine_wave not implementing Sync trait for now");
